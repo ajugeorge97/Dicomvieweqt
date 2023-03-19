@@ -44,4 +44,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     widget = Widget()
     widget.show()
+    widget.setWindowTitle("Dicom Viewer")
     sys.exit(app.exec())
