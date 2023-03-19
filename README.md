@@ -23,15 +23,18 @@ This is a small attempt to develop a Dicom Application Using QT and Python
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 ```
-## Authors
-
-- [Aju George](https://github.com/ajugeorge93)
 
 
+## ScreenShots
 ![Logo](https://github.com/ajugeorge93/Dicomvieweqt/blob/main/Images/1st%20screenshot.png)
 
 
 ## Demo
 
 Insert gif or link to demo
+
+
+## Authors
+
+- [Aju George](https://github.com/ajugeorge93)
 
