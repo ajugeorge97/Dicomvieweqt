@@ -1,0 +1,29 @@
+
+# Dicom Viewer using QT
+
+This is a small attempt to develop a Dicom Application Using QT and Python
+
+
+## Required Libraries
+
+
+
+```bash
+  PySide6
+  OpenGL
+```
+
+
+## Deployement without QT creator 
+
+
+
+```bash
+  # You need to run the following command to generate the ui_form.py file
+#     pyside6-uic form.ui -o ui_form.py, or
+#     pyside2-uic form.ui -o ui_form.py
+```
+## Authors
+
+- [Aju George](https://github.com/ajugeorge93)
+
