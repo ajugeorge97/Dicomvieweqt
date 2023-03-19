@@ -14,6 +14,7 @@ class Widget(QWidget):
         super().__init__(parent)
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
+        self.showMaximized()
 
 
 if __name__ == "__main__":
