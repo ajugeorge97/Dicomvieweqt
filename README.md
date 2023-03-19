@@ -29,10 +29,6 @@ This is a small attempt to develop a Dicom Application Using QT and Python
 ![Logo](https://github.com/ajugeorge93/Dicomvieweqt/blob/main/Images/1st%20screenshot.png)
 
 
-## Demo
-
-Insert gif or link to demo
-
 
 ## Authors
 
