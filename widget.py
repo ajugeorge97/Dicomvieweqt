@@ -1,11 +1,17 @@
 # This Python file uses the following encoding: utf-8
 import sys
+import sys
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedLayout
 
 
 
 from OpenGL import GL as gl
 from PySide6.QtWidgets import QApplication, QWidget
+
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
+from PySide6.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel,QStackedLayout
+from PySide6.QtCore import Qt
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -28,7 +34,18 @@ class Widget(QWidget):
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
         self.showMaximized()
-        openGLviewer().initializeGL()
+        self.initUI()
+
+    def initUI(self):
+        pass
+
+
+
+
+
+
+
+
 
 
 
