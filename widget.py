@@ -2,8 +2,7 @@
 import sys
 import sys
 from PySide6.QtGui import QPixmap,QPalette,QImage
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedLayout
-
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedLayout,QSizePolicy
 
 from OpenGL import GL as gl
 from PySide6.QtWidgets import QApplication, QWidget
@@ -39,8 +38,21 @@ class Widget(QWidget):
 
     def handle_image_viewer(self,viewer):
         viewer.setStyleSheet("background-color:#808080;")
+
         self.QHBoxLayout_viewer=QHBoxLayout(viewer)
+        self.QHBoxLayout_viewer.setContentsMargins(0,0,0,0)
         self.image_viewer=QLabel() 
+
+        sizepolicy=QSizePolicy(QSizePolicy.Maximum,QSizePolicy.Maximum)
+        sizepolicy.setHorizontalPolicy(QSizePolicy.Maximum)
+        sizepolicy.setHorizontalStretch(0)
+        sizepolicy.setVerticalStretch(0)
+        #sizepolicy.setHeightForWidth(self.image_viewer.sizePolicy().hasHeightForWidth())
+        self.image_viewer.setSizePolicy(sizepolicy)
+
+        self.image_viewer.setScaledContents(True)
+        self.image_viewer.setFrameShape(QFrame.StyledPanel)
+        self.image_viewer.setFrameShadow(QFrame.Raised)
         self.QHBoxLayout_viewer.addWidget(self.image_viewer)
         self.image_viewer.setStyleSheet("background-color:#ffffff;")
         image=QPixmap("Dicomvieweqt/Screenshot 2023-09-28 at 11.58.11.png")
