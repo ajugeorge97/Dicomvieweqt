@@ -1,9 +1,8 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import sys
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap,QPalette,QImage
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedLayout
-
 
 
 from OpenGL import GL as gl
@@ -32,9 +31,21 @@ class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.ui = Ui_Widget()
+        
         self.ui.setupUi(self)
-        self.showMaximized()
+        self.handle_image_viewer(self.ui.viewer)
+        self.showMaximized()            
         self.initUI()
+
+    def handle_image_viewer(self,viewer):
+        viewer.setStyleSheet("background-color:#808080;")
+        self.QHBoxLayout_viewer=QHBoxLayout(viewer)
+        self.image_viewer=QLabel() 
+        self.QHBoxLayout_viewer.addWidget(self.image_viewer)
+        self.image_viewer.setStyleSheet("background-color:#ffffff;")
+        image=QPixmap("Dicomvieweqt/Screenshot 2023-09-28 at 11.58.11.png")
+        self.image_viewer.setPixmap(image)
+
 
     def initUI(self):
         pass
