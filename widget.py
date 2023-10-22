@@ -47,12 +47,23 @@ class Widget(QWidget):
         if event.inaxes is not None and event.button == 'up':
             # Zoom in
             #self.zoom(1.1)
-            self.handle_image()
+            self.update_image(pos=self.current_loc+1)
         elif event.inaxes is not None and event.button == 'down':
             # Zoom out
             #self.zoom(0.9)
-            self.handle_image()
+            self.update_image(pos=self.current_loc-1 if self.current_loc>0 else self.current_loc)
         #self.image_viewer.draw()
+
+
+    def update_image(self,pos):
+        self.current_loc=self.data.index(self.current_image)
+        self.current_image=self.data[pos]
+        self.image_plot.set_data(self.current_image.pixel_array)
+        renderer = self.image_viewer.renderer
+
+        self.image_plot.draw(renderer)
+
+
     def zoom(self, factor):
         xlim =self._static_ax.get_xlim()
         ylim =self._static_ax.axes.get_ylim()
@@ -70,14 +81,17 @@ class Widget(QWidget):
         print(event.angleDelta().y())
 
 
-    def handle_image(self,data):
-        image_shape=data.pixel_array.shape[0]
-        image_shape=data.pixel_array.shape[0]
+    def handle_image(self):
+        self.current_image=self.data[0]
+        self.current_loc=0
+        image_shape=self.current_image.pixel_array.shape[0]
+        image_shape=self.current_image.pixel_array.shape[0]
         padding=int((self.aspect_ratio[0]*image_shape-image_shape)-(image_shape-self.aspect_ratio[1]*image_shape)/4)
-        padded_array = np.pad(data.pixel_array, ((0,0), (padding,padding)), mode='constant', constant_values=0)
+        padded_array = np.pad(self.current_image.pixel_array, ((0,0), (padding,padding)), mode='constant', constant_values=0)
         self._static_ax = self.image_viewer.figure.subplots()
-        self._static_ax.imshow(padded_array, cmap=plt.cm.gray)
+        self.image_plot=self._static_ax.imshow(padded_array, cmap=plt.cm.gray)
         self._static_ax.axis('off')
+
 
 
 
@@ -101,7 +115,7 @@ class Widget(QWidget):
         tbar=NavigationToolbar(self.image_viewer)
         self.image_viewer.mpl_connect('scroll_event', self.on_scroll)
         tbar.pan()
-        self.handle_image(self.data[0])
+        self.handle_image()
 
 
 
