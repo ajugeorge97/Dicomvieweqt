@@ -10,7 +10,7 @@ This is a small attempt to develop a Dicom Application Using QT and Python and V
 
 ```bash
   PySide6
-  OpenGL
+  vtk
 ```
 
 
