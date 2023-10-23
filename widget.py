@@ -1,7 +1,6 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import sys
-from PySide6.QtGui import QPixmap,QScrollEvent
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedLayout,QSizePolicy,QMainWindow
 # Important:
@@ -16,7 +15,6 @@ from vtk_interaction import MyVtkInteractorStyleImage,StatusMessage
 from vtkmodules.vtkCommonColor import vtkNamedColors
 from vtkmodules.vtkIOImage import vtkDICOMImageReader
 from vtkmodules.vtkInteractionImage import vtkImageViewer2
-from vtkmodules.vtkInteractionStyle import vtkInteractorStyleImage
 import vtkmodules.vtkRenderingContextOpenGL2
 from vtkmodules.vtkRenderingCore import (
     vtkActor2D,

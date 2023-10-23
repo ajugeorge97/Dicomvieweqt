@@ -1,17 +1,8 @@
 #!/usr/bin/env python3
 
 # noinspection PyUnresolvedReferences
-from vtkmodules.vtkCommonColor import vtkNamedColors
-from vtkmodules.vtkIOImage import vtkDICOMImageReader
-from vtkmodules.vtkInteractionImage import vtkImageViewer2
+
 from vtkmodules.vtkInteractionStyle import vtkInteractorStyleImage
-import vtkmodules.vtkRenderingContextOpenGL2
-from vtkmodules.vtkRenderingCore import (
-    vtkActor2D,
-    vtkRenderWindowInteractor,
-    vtkTextMapper,
-    vtkTextProperty
-    )
 
 #Helper class to format slice status message
 class StatusMessage:
