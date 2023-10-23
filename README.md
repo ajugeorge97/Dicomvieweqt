@@ -1,7 +1,7 @@
 
 # Dicom Viewer using QT
 
-This is a small attempt to develop a Dicom Application Using QT and Python
+This is a small attempt to develop a Dicom Application Using QT and Python and VTK.
 
 
 ## Required Libraries
