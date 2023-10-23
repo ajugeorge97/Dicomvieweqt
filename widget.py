@@ -9,21 +9,23 @@ from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, Q
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_Widget
-from pydicom import dcmread
-from pydicom.filereader import read_dicomdir
-
-
 import sys
 
-import numpy as np
+from vtk_interaction import MyVtkInteractorStyleImage,StatusMessage
+# noinspection PyUnresolvedReferences
+from vtkmodules.vtkCommonColor import vtkNamedColors
+from vtkmodules.vtkIOImage import vtkDICOMImageReader
+from vtkmodules.vtkInteractionImage import vtkImageViewer2
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleImage
+import vtkmodules.vtkRenderingContextOpenGL2
+from vtkmodules.vtkRenderingCore import (
+    vtkActor2D,
+    vtkRenderWindowInteractor,
+    vtkTextMapper,
+    vtkTextProperty
+    )
 
-from matplotlib.backends.backend_qtagg import FigureCanvas
-from matplotlib.backends.backend_qtagg import \
-    NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
-import SimpleITK as sitk
-
+from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 
 class Widget(QWidget):
@@ -37,89 +39,93 @@ class Widget(QWidget):
         self.handle_image_viewer(self.ui.viewer)
         self.initUI()
 
-    def handle_dicom(self,path,padding=True):
-        if padding:
-            return dcmread(path)
-        
-        
-    def on_scroll(self, event):
-        # Check if the event is a mouse scroll
-        if event.inaxes is not None and event.button == 'up':
-            # Zoom in
-            #self.zoom(1.1)
-            self.update_image(pos=self.current_loc+1)
-        elif event.inaxes is not None and event.button == 'down':
-            # Zoom out
-            #self.zoom(0.9)
-            self.update_image(pos=self.current_loc-1 if self.current_loc>0 else self.current_loc)
-        #self.image_viewer.draw()
-
-
-    def update_image(self,pos):
-        self.current_loc=self.data.index(self.current_image)
-        self.current_image=self.data[pos]
-        self.image_plot.set_data(self.current_image.pixel_array)
-        renderer = self.image_viewer.renderer
-
-        self.image_plot.draw(renderer)
-
-
-    def zoom(self, factor):
-        xlim =self._static_ax.get_xlim()
-        ylim =self._static_ax.axes.get_ylim()
-
-        x_center = (xlim[0] + xlim[1]) / 2
-        y_center = (ylim[0] + ylim[1]) / 2
-
-        x_new = [x_center + (x - x_center) * factor for x in xlim]
-        y_new = [y_center + (y - y_center) * factor for y in ylim]
-
-        self._static_ax.set_xlim(x_new)
-        self._static_ax.set_ylim(y_new)
-
-    def wheelEvent(self, event):
-        print(event.angleDelta().y())
-
-
-    def handle_image(self):
-        self.current_image=self.data[0]
-        self.current_loc=0
-        image_shape=self.current_image.pixel_array.shape[0]
-        image_shape=self.current_image.pixel_array.shape[0]
-        padding=int((self.aspect_ratio[0]*image_shape-image_shape)-(image_shape-self.aspect_ratio[1]*image_shape)/4)
-        padded_array = np.pad(self.current_image.pixel_array, ((0,0), (padding,padding)), mode='constant', constant_values=0)
-        self._static_ax = self.image_viewer.figure.subplots()
-        self.image_plot=self._static_ax.imshow(padded_array, cmap=plt.cm.gray)
-        self._static_ax.axis('off')
-
-
-
-
-
     def handle_image_viewer(self,viewer):
-        import os
-        path=r"Sampledata/series-000001"
-        data_set_path=[os.path.join(os.path.dirname(__file__),path,x) for x in os.listdir(path) if x.endswith('.dcm')]
-        self.data=[self.handle_dicom(data) for data in data_set_path]
-        image_shape=self.data[0].pixel_array.shape[0]
+        folder=r"Sampledata/digest_article"
+        colors=vtkNamedColors()
+        reader=vtkDICOMImageReader()
+        #Read DICOM files in the specified directory
+        reader.SetDirectoryName(folder)
+        reader.Update()
+        
 
-       
-
-        self.QHBoxLayout_viewer=QHBoxLayout(viewer)
+        self.QHBoxLayout_viewer=QHBoxLayout()
         self.QHBoxLayout_viewer.setContentsMargins(0,0,0,0)
-        self.image_viewer=FigureCanvas(Figure(layout='tight',facecolor='black'))
+        qvtk=QVTKRenderWindowInteractor(viewer)
+        self.QHBoxLayout_viewer.addWidget(qvtk)
+        viewer.setLayout(self.QHBoxLayout_viewer)
 
-        self.aspect_ratio=(self.image_viewer.geometry().width()/image_shape,self.image_viewer.geometry().height()/image_shape)
+        #Visualilze
+        image_viewer= vtkImageViewer2()
+        image_viewer.SetRenderWindow(qvtk.GetRenderWindow())
+        image_viewer.SetInputConnection(reader.GetOutputPort())
+        #Slice status message 
+        slice_text_prop=vtkTextProperty()
+        slice_text_prop.SetFontFamilyToCourier()
+        slice_text_prop.SetFontSize(20)
+        slice_text_prop.SetVerticalJustificationToBottom()
+        slice_text_prop.SetJustificationToLeft()
+        #Slice status message
+        slice_text_mapper=vtkTextMapper()
+        msg=StatusMessage.format(image_viewer.GetSliceMin(),image_viewer.GetSliceMax())
+        slice_text_mapper.SetInput(msg)
+        slice_text_mapper.SetTextProperty(slice_text_prop)
 
-        self.QHBoxLayout_viewer.addWidget(self.image_viewer)
-        tbar=NavigationToolbar(self.image_viewer)
-        self.image_viewer.mpl_connect('scroll_event', self.on_scroll)
-        tbar.pan()
-        self.handle_image()
+        slice_text_actor=vtkActor2D()
+        slice_text_actor.SetMapper(slice_text_mapper)
+        slice_text_actor.SetPosition(15,10)
+
+        #usage hint message 
+        usage_text_prop=vtkTextProperty()
+        usage_text_prop.SetFontFamilyToCourier()
+        usage_text_prop.SetFontSize(14)
+        usage_text_prop.SetVerticalJustificationToTop()
+        usage_text_prop.SetJustificationToLeft()
+        usage_text_mapper=vtkTextMapper()
+        usage_text_mapper.SetInput(
+            "Slice with mouse wheel\n  or Up/Down-Key\n- Zoom with pressed right\n "
+            " mouse button while dragging"
+        )
+        usage_text_mapper.SetTextProperty(usage_text_prop)
+
+        usage_text_actor=vtkActor2D ()
+        usage_text_actor.SetMapper(usage_text_mapper)
+        usage_text_actor.GetPositionCoordinate().SetCoordinateSystemToNormalizedDisplay()
+        usage_text_actor.GetPositionCoordinate().SetValue(0.05, 0.95)
+
+        #Create an interactor with our own style (inherit from
+        #vtkInteractorStyleImage in order to catch mousewheel and key events.
+        #render_window_interactor= vtkRenderWindowInteractor()
+        my_interactor_style=MyVtkInteractorStyleImage()
+    
+        #Make imageviewer2 and sliceTextMapper visible to our interactorstyle
+        #to enable slice status message updates when  scrolling through the slices.
+        my_interactor_style.set_imageviewer(image_viewer)
+        my_interactor_style.set_status_mapper(slice_text_mapper)
+
+        #Make the interactor use our own interactorstyle
+        #cause SetupInteractor() is defining it's own default interatorstyle
+        #this must be called after SetupInteractor().
+        #renderWindowInteractor.SetInteractorStyle(myInteractorStyle);
+        image_viewer.SetupInteractor(qvtk)
+        qvtk.SetInteractorStyle(my_interactor_style)
+        qvtk.Render()
+
+        #Add slice status message and usage hint message to the renderer.
+        image_viewer.GetRenderer().AddActor2D(slice_text_actor)
+        image_viewer.GetRenderer().AddActor2D(usage_text_actor)
+
+        # Initialize rendering and interaction.
+        image_viewer.Render()
+        image_viewer.GetRenderer().ResetCamera()
+        image_viewer.GetRenderer().SetBackground(colors.GetColor3d("Black"))
+        image_viewer.GetRenderWindow().SetSize(800, 800)
+        image_viewer.GetRenderWindow().SetWindowName("ReadDICOMSeries")
+        image_viewer.Render()
+        qvtk.Start()
 
 
+  
 
-        # Pad the array
 
 
 
