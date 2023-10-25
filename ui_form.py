@@ -15,26 +15,44 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QPushButton,
-    QSizePolicy, QSlider, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLineEdit,
+    QPushButton, QSizePolicy, QSlider, QVBoxLayout,
+    QWidget)
 
 class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(799, 600)
+        Widget.resize(1024, 600)
         self.verticalLayout = QVBoxLayout(Widget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.header = QFrame(Widget)
         self.header.setObjectName(u"header")
-        self.header.setMaximumSize(QSize(16777215, 50))
         self.header.setFrameShape(QFrame.StyledPanel)
         self.header.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_4 = QHBoxLayout(self.header)
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.current_dir = QLineEdit(self.header)
+        self.current_dir.setObjectName(u"current_dir")
+        self.current_dir.setAutoFillBackground(False)
+        self.current_dir.setText(u"browse folder")
+        self.current_dir.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+        self.current_dir.setReadOnly(True)
+        self.current_dir.setClearButtonEnabled(False)
+
+        self.horizontalLayout_4.addWidget(self.current_dir)
+
+        self.browse_button = QPushButton(self.header)
+        self.browse_button.setObjectName(u"browse_button")
+
+        self.horizontalLayout_4.addWidget(self.browse_button)
+
 
         self.verticalLayout.addWidget(self.header)
 
         self.body = QFrame(Widget)
         self.body.setObjectName(u"body")
+        self.body.setEnabled(True)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -105,6 +123,7 @@ class Ui_Widget(object):
 
     def retranslateUi(self, Widget):
         Widget.setWindowTitle(QCoreApplication.translate("Widget", u"Widget", None))
+        self.browse_button.setText(QCoreApplication.translate("Widget", u"PushButton", None))
         self.pushButton_2.setText(QCoreApplication.translate("Widget", u"PushButton", None))
     # retranslateUi
 
