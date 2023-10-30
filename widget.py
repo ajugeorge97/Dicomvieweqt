@@ -2,7 +2,7 @@
 import sys
 import sys
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedLayout,QSizePolicy,QMainWindow
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedLayout,QSizePolicy,QMainWindow,QFileDialog
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -38,19 +38,25 @@ class Widget(QWidget):
         self.initUI()
     
     def onclick(self):
+        folder=r"Sampledata/digest_article"
+        path= QFileDialog.getExistingDirectory()
+        reader=vtkDICOMImageReader()
+        #Read DICOM files in the specified directory
+        reader.SetDirectoryName(path)
+        reader.Update()
+        self.reader_out=reader.GetOutputPort()
         self.handle_image_viewer(self.ui.viewer)
         print("button clicked")
+
+
     def load_dicom_series(self,browse_button):
         browse_button.clicked.connect(self.onclick)
 
 
     def handle_image_viewer(self,viewer):
-        folder=r"Sampledata/digest_article"
         colors=vtkNamedColors()
-        reader=vtkDICOMImageReader()
-        #Read DICOM files in the specified directory
-        reader.SetDirectoryName(folder)
-        reader.Update()
+
+        reader_output=self.reader_out
 
         self.QHBoxLayout_viewer=QHBoxLayout()
         self.QHBoxLayout_viewer.setContentsMargins(0,0,0,0)
@@ -61,7 +67,7 @@ class Widget(QWidget):
         #Visualilze
         image_viewer = vtkImageViewer2()
         image_viewer.SetRenderWindow(qvtk.GetRenderWindow())
-        image_viewer.SetInputConnection(reader.GetOutputPort())
+        image_viewer.SetInputConnection(reader_output)
         #Slice status message 
         slice_text_prop = vtkTextProperty()
         slice_text_prop.SetFontFamilyToCourier()
