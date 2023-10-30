@@ -36,28 +36,30 @@ class Widget(QWidget):
         self.load_dicom_series(self.ui.browse_button)
         #self.handle_image_viewer(self.ui.viewer)
         self.initUI()
+        self.reader = None
+        self.image_viewer = None
     
     def onclick(self):
-        folder=r"Sampledata/digest_article"
-        path= QFileDialog.getExistingDirectory()
-        reader=vtkDICOMImageReader()
-        #Read DICOM files in the specified directory
-        reader.SetDirectoryName(path)
-        reader.Update()
-        self.reader_out=reader.GetOutputPort()
-        self.handle_image_viewer(self.ui.viewer)
-        print("button clicked")
+        #folder=r"Sampledata/digest_article"
+        folder = QFileDialog.getExistingDirectory()
+        if folder:
+            if self.reader is None:
+                self.reader = vtkDICOMImageReader()
+                self.image_viewer = vtkImageViewer2()
+
+            self.reader.SetDirectoryName(folder)
+            self.reader.Update()
+            self.image_viewer.SetSlice(0)
+            self.handle_image_viewer(self.ui.viewer, self.reader.GetOutputPort())
+            print("Button clicked")
 
 
     def load_dicom_series(self,browse_button):
         browse_button.clicked.connect(self.onclick)
 
 
-    def handle_image_viewer(self,viewer):
+    def handle_image_viewer(self,viewer,reader_out):
         colors=vtkNamedColors()
-
-        reader_output=self.reader_out
-
         self.QHBoxLayout_viewer=QHBoxLayout()
         self.QHBoxLayout_viewer.setContentsMargins(0,0,0,0)
         qvtk=QVTKRenderWindowInteractor(viewer)
@@ -65,19 +67,19 @@ class Widget(QWidget):
         viewer.setLayout(self.QHBoxLayout_viewer)
 
         #Visualilze
-        image_viewer = vtkImageViewer2()
-        image_viewer.SetRenderWindow(qvtk.GetRenderWindow())
-        image_viewer.SetInputConnection(reader_output)
+        #self.image_viewer = vtkImageViewer2()
+        self.image_viewer.SetRenderWindow(qvtk.GetRenderWindow())
+        self.image_viewer.SetInputConnection(reader_out)
         #Slice status message 
         slice_text_prop = vtkTextProperty()
         slice_text_prop.SetFontFamilyToCourier()
         slice_text_prop.SetFontSize(20)
         slice_text_prop.SetVerticalJustificationToBottom()
         slice_text_prop.SetJustificationToLeft()
-        print(image_viewer.GetColorLevel())
+        print(self.image_viewer.GetColorLevel())
         #Slice status message
         slice_text_mapper = vtkTextMapper()
-        msg=StatusMessage.format(image_viewer.GetSliceMin(),image_viewer.GetSliceMax())
+        msg=StatusMessage.format(self.image_viewer.GetSliceMin(),self.image_viewer.GetSliceMax())
         slice_text_mapper.SetInput(msg)
         slice_text_mapper.SetTextProperty(slice_text_prop)
 
@@ -110,28 +112,28 @@ class Widget(QWidget):
     
         #Make imageviewer2 and sliceTextMapper visible to our interactorstyle
         #to enable slice status message updates when  scrolling through the slices.
-        my_interactor_style.set_imageviewer(image_viewer)
+        my_interactor_style.set_imageviewer(self.image_viewer)
         my_interactor_style.set_status_mapper(slice_text_mapper)
 
         #Make the interactor use our own interactorstyle
         #cause SetupInteractor() is defining it's own default interatorstyle
         #this must be called after SetupInteractor().
         #renderWindowInteractor.SetInteractorStyle(myInteractorStyle);
-        image_viewer.SetupInteractor(qvtk)
+        self.image_viewer.SetupInteractor(qvtk)
         qvtk.SetInteractorStyle(my_interactor_style)
         qvtk.Render()
 
         #Add slice status message and usage hint message to the renderer.
-        image_viewer.GetRenderer().AddActor2D(slice_text_actor)
-        image_viewer.GetRenderer().AddActor2D(usage_text_actor)
+        self.image_viewer.GetRenderer().AddActor2D(slice_text_actor)
+        self.image_viewer.GetRenderer().AddActor2D(usage_text_actor)
 
         # Initialize rendering and interaction.
-        image_viewer.Render()
-        image_viewer.GetRenderer().ResetCamera()
-        image_viewer.GetRenderer().SetBackground(colors.GetColor3d("Black"))
-        image_viewer.GetRenderWindow().SetSize(800, 800)
-        image_viewer.GetRenderWindow().SetWindowName("ReadDICOMSeries")
-        image_viewer.Render()
+        self.image_viewer.Render()
+        self.image_viewer.GetRenderer().ResetCamera()
+        self.image_viewer.GetRenderer().SetBackground(colors.GetColor3d("Black"))
+        self.image_viewer.GetRenderWindow().SetSize(800, 800)
+        self.image_viewer.GetRenderWindow().SetWindowName("ReadDICOMSeries")
+        self.image_viewer.Render()
         qvtk.Start()
 
     def initUI(self):
