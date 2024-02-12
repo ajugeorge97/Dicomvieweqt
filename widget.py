@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import sys
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt,QCoreApplication
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedLayout,QSizePolicy,QMainWindow,QFileDialog
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -23,6 +23,7 @@ from vtkmodules.vtkRenderingCore import (
     )
 
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from viewer import Viewer
 
 
 class Widget(QWidget):
@@ -35,118 +36,136 @@ class Widget(QWidget):
         self.setFixedSize(self.size())
         self.load_dicom_series(self.ui.browse_button)
         #self.handle_image_viewer(self.ui.viewer)
-        self.initUI()
+        #self.initUI()
         self.reader = None
         self.image_viewer = None
+        self.qvtk=None
     
     def onclick(self):
         #folder=r"Sampledata/digest_article"
-        folder = QFileDialog.getExistingDirectory()
-        if folder:
-            if self.reader is None:
-                self.reader = vtkDICOMImageReader()
-                self.image_viewer = vtkImageViewer2()
-
-            self.reader.SetDirectoryName(folder)
-            self.reader.Update()
-            self.image_viewer.SetSlice(0)
-            self.handle_image_viewer(self.ui.viewer, self.reader.GetOutputPort())
-            print("Button clicked")
-
-
+        folder= QFileDialog.getExistingDirectory(None, "Open Folder", "./Sampledata")
+        self.handle_image_viewer(self.ui.viewer, folder)
+        print("Button clicked")
     def load_dicom_series(self,browse_button):
         browse_button.clicked.connect(self.onclick)
 
+    def clear_layout(self, viewer):
+        #clear layout
+        layout = viewer.layout()
+        if layout:
+            while layout.count():
+                item = layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+            layout.deleteLater()
+        viewer.setLayout(None)
 
-    def handle_image_viewer(self,viewer,reader_out):
-        colors=vtkNamedColors()
-        self.QHBoxLayout_viewer=QHBoxLayout()
-        self.QHBoxLayout_viewer.setContentsMargins(0,0,0,0)
-        qvtk=QVTKRenderWindowInteractor(viewer)
-        self.QHBoxLayout_viewer.addWidget(qvtk)
-        viewer.setLayout(self.QHBoxLayout_viewer)
 
-        #Visualilze
-        #self.image_viewer = vtkImageViewer2()
-        self.image_viewer.SetRenderWindow(qvtk.GetRenderWindow())
-        self.image_viewer.SetInputConnection(reader_out)
-        #Slice status message 
-        slice_text_prop = vtkTextProperty()
-        slice_text_prop.SetFontFamilyToCourier()
-        slice_text_prop.SetFontSize(20)
-        slice_text_prop.SetVerticalJustificationToBottom()
-        slice_text_prop.SetJustificationToLeft()
-        print(self.image_viewer.GetColorLevel())
-        #Slice status message
-        slice_text_mapper = vtkTextMapper()
-        msg=StatusMessage.format(self.image_viewer.GetSliceMin(),self.image_viewer.GetSliceMax())
-        slice_text_mapper.SetInput(msg)
-        slice_text_mapper.SetTextProperty(slice_text_prop)
+    def handle_image_viewer(self,viewer,folder):
+        try:
+            self.clear_layout(viewer)
+        except:
+            print("No layout")
+        viewer_widget = Viewer()
+        viewer_layout=viewer_widget.create_widgets(folder,viewer)
+        viewer.setLayout(viewer_layout)
+        viewer_widget.initUI()
 
-        slice_text_actor = vtkActor2D()
-        slice_text_actor.SetMapper(slice_text_mapper)
-        slice_text_actor.SetPosition(15,10)
 
-        #usage hint message 
-        usage_text_prop = vtkTextProperty()
-        usage_text_prop.SetFontFamilyToCourier()
-        usage_text_prop.SetFontSize(14)
-        usage_text_prop.SetVerticalJustificationToTop()
-        usage_text_prop.SetJustificationToLeft()
-        usage_text_mapper = vtkTextMapper()
-        usage_text_mapper.SetInput(
-            "Slice with mouse wheel\n  or Up/Down-Key\n- Zoom with pressed right\n "
-            " mouse button while dragging"
-        )
-        usage_text_mapper.SetTextProperty(usage_text_prop)
 
-        usage_text_actor = vtkActor2D ()
-        usage_text_actor.SetMapper(usage_text_mapper)
-        usage_text_actor.GetPositionCoordinate().SetCoordinateSystemToNormalizedDisplay()
-        usage_text_actor.GetPositionCoordinate().SetValue(0.05, 0.95)
 
-        #Create an interactor with our own style (inherit from
-        #vtkInteractorStyleImage in order to catch mousewheel and key events.
-        #render_window_interactor= vtkRenderWindowInteractor()
-        my_interactor_style = MyVtkInteractorStyleImage()
+
+        # if self.reader:
+        #     self.reader=None
+        # self.reader = vtkDICOMImageReader()
+        # self.reader.SetDirectoryName(folder)
+        # self.reader.Update()
+        # colors=vtkNamedColors()
+        # self.QHBoxLayout_viewer=QHBoxLayout()
+        # self.QHBoxLayout_viewer.setContentsMargins(0,0,0,0)
+
+        # self.qvtk=QVTKRenderWindowInteractor(viewer)
+        # self.QHBoxLayout_viewer.addWidget(self.qvtk)
+        # viewer.setLayout(self.QHBoxLayout_viewer)
+
+        # #Visualilze
+        # if self.image_viewer:
+        #     self.image_viewer=None
+        # self.image_viewer = vtkImageViewer2()
+
+        # self.image_viewer.SetRenderWindow(self.qvtk.GetRenderWindow())
+        # self.image_viewer.SetInputConnection(self.reader.GetOutputPort())
+        # self.image_viewer.GetRenderer().ResetCamera()
+        # #self.image_viewer.SetSlice(0)
+        # #Slice status message 
+        # slice_text_prop = vtkTextProperty()
+        # slice_text_prop.SetFontFamilyToCourier()
+        # slice_text_prop.SetFontSize(20)
+        # slice_text_prop.SetVerticalJustificationToBottom()
+        # slice_text_prop.SetJustificationToLeft()
+        # print(self.image_viewer.GetColorLevel())
+        # #Slice status message
+        # slice_text_mapper = vtkTextMapper()
+        # msg=StatusMessage.format(self.image_viewer.GetSliceMin(),self.image_viewer.GetSliceMax())
+        # slice_text_mapper.SetInput(msg)
+        # slice_text_mapper.SetTextProperty(slice_text_prop)  
+
+        # slice_text_actor = vtkActor2D()
+        # slice_text_actor.SetMapper(slice_text_mapper)
+        # slice_text_actor.SetPosition(15,10)
+
+        # #usage hint message 
+        # usage_text_prop = vtkTextProperty()
+        # usage_text_prop.SetFontFamilyToCourier()
+        # usage_text_prop.SetFontSize(14)
+        # usage_text_prop.SetVerticalJustificationToTop()
+        # usage_text_prop.SetJustificationToLeft()
+        # usage_text_mapper = vtkTextMapper()
+        # usage_text_mapper.SetInput(
+        #     "Slice with mouse wheel\n  or Up/Down-Key\n- Zoom with pressed right\n "
+        #     " mouse button while dragging"
+        # )
+        # usage_text_mapper.SetTextProperty(usage_text_prop)
+
+        # usage_text_actor = vtkActor2D ()
+        # usage_text_actor.SetMapper(usage_text_mapper)
+        # usage_text_actor.GetPositionCoordinate().SetCoordinateSystemToNormalizedDisplay()
+        # usage_text_actor.GetPositionCoordinate().SetValue(0.05, 0.95)
+
+        # #Create an interactor with our own style (inherit from
+        # #vtkInteractorStyleImage in order to catch mousewheel and key events.
+        # #render_window_interactor= vtkRenderWindowInteractor()
+
+        # my_interactor_style = MyVtkInteractorStyleImage()
     
-        #Make imageviewer2 and sliceTextMapper visible to our interactorstyle
-        #to enable slice status message updates when  scrolling through the slices.
-        my_interactor_style.set_imageviewer(self.image_viewer)
-        my_interactor_style.set_status_mapper(slice_text_mapper)
+        # #Make imageviewer2 and sliceTextMapper visible to our interactorstyle
+        # #to enable slice status message updates when  scrolling through the slices.
+        # my_interactor_style.set_imageviewer(self.image_viewer)
+        # my_interactor_style.set_status_mapper(slice_text_mapper)
 
-        #Make the interactor use our own interactorstyle
-        #cause SetupInteractor() is defining it's own default interatorstyle
-        #this must be called after SetupInteractor().
-        #renderWindowInteractor.SetInteractorStyle(myInteractorStyle);
-        self.image_viewer.SetupInteractor(qvtk)
-        qvtk.SetInteractorStyle(my_interactor_style)
-        qvtk.Render()
+        # #Make the interactor use our own interactorstyle
+        # #cause SetupInteractor() is defining it's own default interatorstyle
+        # #this must be called after SetupInteractor().
+        # #renderWindowInteractor.SetInteractorStyle(myInteractorStyle);
+        # self.image_viewer.SetupInteractor(self.qvtk)
+        # self.qvtk.SetInteractorStyle(my_interactor_style)
+        # self.qvtk.Render()
 
-        #Add slice status message and usage hint message to the renderer.
-        self.image_viewer.GetRenderer().AddActor2D(slice_text_actor)
-        self.image_viewer.GetRenderer().AddActor2D(usage_text_actor)
+        # #Add slice status message and usage hint message to the renderer.
+        # self.image_viewer.GetRenderer().AddActor2D(slice_text_actor)
+        # self.image_viewer.GetRenderer().AddActor2D(usage_text_actor)
 
-        # Initialize rendering and interaction.
-        self.image_viewer.Render()
-        self.image_viewer.GetRenderer().ResetCamera()
-        self.image_viewer.GetRenderer().SetBackground(colors.GetColor3d("Black"))
-        self.image_viewer.GetRenderWindow().SetSize(800, 800)
-        self.image_viewer.GetRenderWindow().SetWindowName("ReadDICOMSeries")
-        self.image_viewer.Render()
-        qvtk.Start()
+        # # Initialize rendering and interaction.
+        # self.image_viewer.Render()
+        # self.image_viewer.GetRenderer().ResetCamera()
+        # self.image_viewer.GetRenderer().SetBackground(colors.GetColor3d("Black"))
+        # self.image_viewer.GetRenderWindow().SetSize(800, 800)
+        # self.image_viewer.GetRenderWindow().SetWindowName("ReadDICOMSeries")
+        # self.image_viewer.Render()
+        # self.qvtk.Start()
 
     def initUI(self):
         pass
-
-
-
-
-
-
-
-
-
 
 
 
