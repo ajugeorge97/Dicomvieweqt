@@ -33,43 +33,34 @@ class Widget(QWidget):
         
         self.ui.setupUi(self)
         self.showMaximized()
-        self.setFixedSize(self.size())
+
         self.load_dicom_series(self.ui.browse_button)
-        #self.handle_image_viewer(self.ui.viewer)
-        #self.initUI()
+
         self.reader = None
         self.image_viewer = None
         self.qvtk=None
+        self.viewer_widget = None
     
     def onclick(self):
         #folder=r"Sampledata/digest_article"
         folder= QFileDialog.getExistingDirectory(None, "Open Folder", "./Sampledata")
         self.handle_image_viewer(self.ui.viewer, folder)
-        print("Button clicked")
+
     def load_dicom_series(self,browse_button):
         browse_button.clicked.connect(self.onclick)
 
-    def clear_layout(self, viewer):
-        #clear layout
-        layout = viewer.layout()
-        if layout:
-            while layout.count():
-                item = layout.takeAt(0)
-                if item.widget():
-                    item.widget().deleteLater()
-            layout.deleteLater()
-        viewer.setLayout(None)
 
 
     def handle_image_viewer(self,viewer,folder):
-        try:
-            self.clear_layout(viewer)
-        except:
-            print("No layout")
-        viewer_widget = Viewer()
-        viewer_layout=viewer_widget.create_widgets(folder,viewer)
+
+        if self.viewer_widget is None:
+            self.viewer_widget = Viewer()
+    
+        self.viewer_widget.update_reader(folder)
+
+        viewer_layout= self.viewer_widget.create_widgets(viewer)
         viewer.setLayout(viewer_layout)
-        viewer_widget.initUI()
+        self.viewer_widget.initUI()
 
 
 
