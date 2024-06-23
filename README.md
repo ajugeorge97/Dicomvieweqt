@@ -4,13 +4,12 @@
 This is a small attempt to develop a Dicom Application Using QT and Python and VTK.
 
 
-## Required Libraries
+## Create enviroment
 
 
 
 ```bash
-  PySide6
-  vtk
+  conda env create -f environment.yml
 ```
 
 

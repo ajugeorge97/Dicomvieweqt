@@ -24,21 +24,21 @@ class MyVtkInteractorStyleImage(vtkInteractorStyleImage):
         self.max_slice=0
     
     def set_imageviewer(self, image_viewer):
-        self.imageviewer=image_viewer
+        self.imageviewer = image_viewer
         self.min_slice=image_viewer.GetSliceMin()
         self.max_slice=image_viewer.GetSliceMax()
         self.slice=self.min_slice
         print(f"Slicer: Min = {self.min_slice}, Max= {self.max_slice}")
 
     def set_status_mapper(self, status_mapper):
-        self.status_mapper=status_mapper
+        self.status_mapper = status_mapper
 
     def move_slice_forward(self): 
-        if self.slice<self.max_slice:
+        if self.slice < self.max_slice:
             self.slice+=1
             print(f"MoveSliceForward :: Slice = {self.slice}")
             self.imageviewer.SetSlice(self.slice)
-            msg=StatusMessage.format(self.slice,self.max_slice)
+            msg = StatusMessage.format(self.slice,self.max_slice)
             self.status_mapper.SetInput(msg)
             self.imageviewer.Render()
 
